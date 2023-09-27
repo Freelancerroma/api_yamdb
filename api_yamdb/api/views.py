@@ -11,7 +11,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [AdminModeratorAuthorReader, ]
+    permission_classes = (AdminModeratorAuthorReader,)
 
     def get_title(self):
         return get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -27,7 +27,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Комментарии viewset."""
 
     serializer_class = CommentSerializer
-    permission_classes = [AdminModeratorAuthorReader, ]
+    permission_classes = (AdminModeratorAuthorReader,)
 
     def get_review(self):
         return get_object_or_404(
