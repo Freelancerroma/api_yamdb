@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, validators
 from reviews.models import Category, Genre, Title, Review, Comment
 
 
@@ -29,7 +29,9 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Category.objects.all()
     )
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(
+        read_only=True
+    )
 
     class Meta:
         model = Title
