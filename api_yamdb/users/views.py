@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.core.mail import send_mail
 from rest_framework import filters, status, viewsets
 from rest_framework.generics import get_object_or_404
@@ -12,9 +9,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
 from users.permissions import IsAdmin
-from users.serializers import (AuthSignupSerializer, 
+from users.serializers import (AuthSignupSerializer,
                                AuthTokenSerializer,
-                               UserDetailSerializer, 
+                               UserDetailSerializer,
                                UserMeSerializer,
                                UserSerializer)
 
