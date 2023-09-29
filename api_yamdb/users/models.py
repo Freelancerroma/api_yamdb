@@ -1,6 +1,7 @@
 """User class models."""
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.crypto import get_random_string
 
 
 class User(AbstractUser):
@@ -10,11 +11,11 @@ class User(AbstractUser):
     MODERATOR = 'moderator'
     ADMIN = 'admin'
 
-    ROLES = [
+    ROLES = (
         (USER, 'user'),
         (MODERATOR, 'moderator'),
         (ADMIN, 'admin'),
-    ]
+    )
 
     username = models.CharField(
         'username',
@@ -53,8 +54,26 @@ class User(AbstractUser):
         blank=True,
     )
 
+    confirmation_code = models.CharField(
+        max_length=10,
+        default=get_random_string(length=15),
+        editable=False,
+    )
+
     REQUIRED_FIELDS = ('email',)
 
     def __str__(self) -> str:
         """Redifed string method for custom user class."""
         return self.username
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_user(self):
+        return self.role == self.USER
