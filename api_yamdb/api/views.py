@@ -1,9 +1,11 @@
+from django.db.models import Avg
 from rest_framework import viewsets
 from reviews.models import Category, Genre, Title, Review
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer,
+    TitleViewSerializer,
+    TitleWriteSerializer,
     ReviewSerializer,
     CommentSerializer
 )
@@ -17,31 +19,47 @@ from users.permissions import (
     ReadOnly
 )
 from django.shortcuts import get_object_or_404
-from users import permissions
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """Получение списка всех категорий."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (permissions.IsAdmin,)
+    permission_classes = (
+        IsAdmin,
+        ReadOnly,
+    )
 
 
 class GenreViewSet(viewsets.ModelViewSet):
     """Получение списка всех жанров."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (permissions.IsAdmin,)
+    permission_classes = (
+        IsAdmin,
+        ReadOnly,
+    )
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Получение списка всех произведений."""
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    )
+    serializer_class = TitleViewSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (permissions.IsAdmin,)
+    permission_classes = (
+        IsAdmin,
+        ReadOnly,
+    )
+
+    def get_title():
+        pass
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
