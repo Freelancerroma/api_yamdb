@@ -7,6 +7,7 @@ from .serializers import (
     ReviewSerializer,
     CommentSerializer
 )
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import viewsets
 from reviews.models import Review, Title
 from users.permissions import (
@@ -16,24 +17,31 @@ from users.permissions import (
     ReadOnly
 )
 from django.shortcuts import get_object_or_404
+from users import permissions
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """Получение списка всех категорий."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = LimitOffsetPagination
+    permission_classes = (permissions.IsAdmin,)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
     """Получение списка всех жанров."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    pagination_class = LimitOffsetPagination
+    permission_classes = (permissions.IsAdmin,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Получение списка всех произведений."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    pagination_class = LimitOffsetPagination
+    permission_classes = (permissions.IsAdmin,)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
