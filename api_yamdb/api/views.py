@@ -24,6 +24,7 @@ class CategoryViewSet(GetListCreateDeleteMixin):
         ReadOnly,
     )
     filter_backends = (SearchFilter,)
+    lookup_field = 'slug'
     search_fields = ('name',)
 
 
@@ -37,6 +38,9 @@ class GenreViewSet(GetListCreateDeleteMixin):
         IsAdmin,
         ReadOnly,
     )
+    filter_backends = (SearchFilter,)
+    lookup_field = 'slug'
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -68,7 +72,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsUser,
         IsModerator,
         IsAdmin,
-        ReadOnly
+        ReadOnly,
     )
 
     def get_title(self):
@@ -89,7 +93,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         IsUser,
         IsModerator,
         IsAdmin,
-        ReadOnly
+        ReadOnly,
     )
 
     def get_review(self):

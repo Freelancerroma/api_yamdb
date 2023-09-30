@@ -25,7 +25,8 @@ class Category(models.Model):
 class Genre(models.Model):
     """Модель жанра."""
     name = models.CharField(max_length=256,
-                            verbose_name='Название жанра')
+                            verbose_name='Название жанра',
+                            db_index=True)
     slug = models.SlugField(max_length=50,
                             unique=True,
                             verbose_name='Слаг')
@@ -51,11 +52,25 @@ class Title(models.Model):
         ),
         verbose_name='Год выпуска произведения'
     )
-    description = models.TextField(verbose_name='Описание произведения')
-    genre = models.ManyToManyField(Genre, verbose_name='Жанр')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL,
-                                 null=True,
-                                 verbose_name='Категория')
+    description = models.TextField(
+        verbose_name='Описание произведения',
+        blank=True,
+        null=True,
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанр',
+        # through='GenreTitle',
+        # through_fields=('title', 'genre'),
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Категория',
+        blank=True,
+        related_name='titles',
+    )
 
     class Meta:
         verbose_name = 'Произведение'

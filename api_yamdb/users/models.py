@@ -19,20 +19,20 @@ class User(AbstractUser):
 
     username = models.CharField(
         'username',
-        max_length=256,
+        max_length=150,
         blank=False,
         unique=True,
     )
 
     email = models.EmailField(
         'email',
-        max_length=256,
+        max_length=254,
         unique=True,
     )
 
     role = models.CharField(
         'role',
-        max_length=256,
+        max_length=30,
         choices=ROLES,
         default=USER,
     )
@@ -44,18 +44,18 @@ class User(AbstractUser):
 
     first_name = models.CharField(
         'name',
-        max_length=256,
+        max_length=150,
         blank=True,
     )
 
     last_name = models.CharField(
         'surname',
-        max_length=256,
+        max_length=150,
         blank=True,
     )
 
     confirmation_code = models.CharField(
-        max_length=10,
+        max_length=150,
         default=get_random_string(length=15),
         editable=False,
     )
