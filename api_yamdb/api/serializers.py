@@ -1,6 +1,7 @@
-from rest_framework import serializers, validators
-from reviews.models import Category, Genre, Title, Review, Comment
 from django.db.models import Avg
+from rest_framework import serializers, validators
+
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -37,7 +38,7 @@ class TitleViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'description', 'genre', 'category')
+        fields = '__all__'
 
     def get_rating(self, obj):
         obj = obj.reviews.all().aggregate(rating=Avg("score"))
@@ -59,7 +60,7 @@ class TitleWriteSerializer(serializers.ModelField):
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'description', 'genre', 'category')
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

@@ -1,27 +1,18 @@
 from django.db.models import Avg
-from rest_framework import viewsets
-from reviews.models import Category, Genre, Title, Review
-from .serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleViewSerializer,
-    TitleWriteSerializer,
-    ReviewSerializer,
-    CommentSerializer
-)
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import viewsets
-from reviews.models import Review, Title
-from users.permissions import (
-    IsUser,
-    IsModerator,
-    IsAdmin,
-    ReadOnly
-)
 from django.shortcuts import get_object_or_404
+from rest_framework import permissions, viewsets
+from rest_framework.pagination import LimitOffsetPagination
+
+from reviews.models import Category, Genre, Review, Title
+from users.permissions import IsAdmin, IsModerator, IsUser, ReadOnly
+
+from .mixins import GetListCreateDeleteMixin
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleViewSerializer, TitleWriteSerializer)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(GetListCreateDeleteMixin):
     """Получение списка всех категорий."""
 
     queryset = Category.objects.all()
@@ -33,7 +24,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     )
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(GetListCreateDeleteMixin):
     """Получение списка всех жанров."""
 
     queryset = Genre.objects.all()
@@ -58,8 +49,10 @@ class TitleViewSet(viewsets.ModelViewSet):
         ReadOnly,
     )
 
-    def get_title():
-        pass
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return TitleViewSerializer
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -67,6 +60,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    pagination_class = LimitOffsetPagination
     permission_classes = (
         IsUser,
         IsModerator,
