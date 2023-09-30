@@ -1,6 +1,7 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Category, Genre, Review, Title
@@ -22,6 +23,8 @@ class CategoryViewSet(GetListCreateDeleteMixin):
         IsAdmin,
         ReadOnly,
     )
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(GetListCreateDeleteMixin):
