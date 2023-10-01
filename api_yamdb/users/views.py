@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
-from users.permissions import IsAdmin
+from users.permissions import IsAdminModerator
 from users.serializers import (AuthSignupSerializer, AuthTokenSerializer,
                                UserDetailSerializer, UserMeSerializer,
                                UserSerializer)
@@ -59,7 +59,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAdminModerator,)
     pagination_class = ResultPagination
 
     def perform_create(self, serializer):
@@ -67,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class APIUserDetail(APIView):
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAdminModerator,)
 
     def get(self, request, username):
         user = get_object_or_404(User, username=username)
