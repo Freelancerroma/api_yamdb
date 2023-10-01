@@ -8,9 +8,14 @@ from reviews.models import Category, Genre, Review, Title
 from users.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthorReadOnly
 
 from .mixins import GetListCreateDeleteMixin
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          TitleViewSerializer, TitleWriteSerializer)
+from .serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleViewSerializer,
+    TitleWriteSerializer
+)
 
 
 class CategoryViewSet(GetListCreateDeleteMixin):
@@ -21,8 +26,8 @@ class CategoryViewSet(GetListCreateDeleteMixin):
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (SearchFilter,)
+    search_fields = ('name', )
     lookup_field = 'slug'
-    search_fields = ('name',)
 
 
 class GenreViewSet(GetListCreateDeleteMixin):

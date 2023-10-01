@@ -2,7 +2,7 @@
 from rest_framework import permissions
 
 
-class IsAdminModerator(permissions.BasePermission):
+class IsAdminSuperuser(permissions.BasePermission):
     """Admin and Superuser permissions."""
 
     def has_permission(self, request, view):

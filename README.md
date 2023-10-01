@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ```
 6. Импортируйте данные из csv:
 ```
-python manage.py import_csv
+python manage.py load_data
 ```
 7. Создайте суперпользователя:
 ```

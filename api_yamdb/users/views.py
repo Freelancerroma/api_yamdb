@@ -1,106 +1,105 @@
-from django.core.mail import send_mail
-from rest_framework import filters, status, viewsets
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+
+
+from .permissions import IsAdminSuperuser
+
+
+from .models import User
+from rest_framework import filters, status
+from .serializers import (
+    UserSerializer,
+    UserMeSerializer,
+    RegistrationSerializer,
+    TokenSerializer
+)
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from .validators import ValidateUsername
+from rest_framework.exceptions import ValidationError
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import AccessToken
 
-from users.models import User
-from users.permissions import IsAdminModerator
-from users.serializers import (AuthSignupSerializer, AuthTokenSerializer,
-                               UserDetailSerializer, UserMeSerializer,
-                               UserSerializer)
 
+class UserViewSet(ValidateUsername, viewsets.ModelViewSet):
+    """User viewset."""
 
-class ResultPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 1000
+    queryset = User.objects.all()
+    lookup_field = 'username'
+    permission_classes = (IsAdminSuperuser,)
+    filter_backends = (filters.SearchFilter,)
+    serializer_class = UserSerializer
+    search_fields = ('username',)
+    http_method_names = ('get', 'patch', 'post', 'delete')
 
+    @action(
+        methods=('get', 'patch'),
+        url_path='me',
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
+    def me(self, request):
 
-class APIAuthSignup(APIView):
-    def post(self, request):
-        serializer = AuthSignupSerializer(data=request.data)
+        user = get_object_or_404(User, username=self.request.user)
+        if request.method == 'GET':
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserMeSerializer(user, data=request.data,
+                                      partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        user = get_object_or_404(
-            User,
-            username=serializer.validated_data.get('username')
-        )
-        send_mail(
-            'Код подтверждения',
-            str(user.confirmation_code),
-            'loonychucky@yandex.ru',
-            (serializer.validated_data.get('email'), ),
-            fail_silently=False,
-        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class APIAuthToken(APIView):
-    def post(self, request):
-        serializer = AuthTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(
-            User,
-            username=serializer.validated_data.get('username')
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup_user(request):
+
+    serializer = RegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data.get('email')
+    username = serializer.validated_data.get('username')
+    user_username = User.objects.filter(username=username).first()
+    user_email = User.objects.filter(email=email).first()
+    if user_username == user_email:
+        user, _ = User.objects.get_or_create(
+            username=username, email=email)
+    else:
+        raise ValidationError(
+            'Email already exists',
+            status.HTTP_400_BAD_REQUEST,
         )
+
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject='Registration Yamdb.',
+        message=f'Verify code: {confirmation_code}',
+        from_email='api_yamdb@staff',
+        recipient_list=[user.email],
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_token(request):
+
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User, username=serializer.validated_data['username']
+    )
+    if default_token_generator.check_token(
+            user, serializer.validated_data['confirmation_code']
+    ):
         token = AccessToken.for_user(user)
         return Response(
-            data={'token': str(token)},
-            status=status.HTTP_200_OK
+            {'access': str(token)}, status=status.HTTP_200_OK
         )
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('username',)
-    permission_classes = (IsAdminModerator,)
-    pagination_class = ResultPagination
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
-class APIUserDetail(APIView):
-    permission_classes = (IsAdminModerator,)
-
-    def get(self, request, username):
-        user = get_object_or_404(User, username=username)
-        serializer = UserDetailSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request, username):
-        user = get_object_or_404(User, username=username)
-        serializer = UserDetailSerializer(
-            user, data=request.data,
-            partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def delete(self, request, username):
-        user = get_object_or_404(User, username=username)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class APIUserMe(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        user = get_object_or_404(User, username=request.user.username)
-        serializer = UserMeSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        user = get_object_or_404(User, username=request.user.username)
-        serializer = UserMeSerializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(
+        {'confirmation_code': 'Invalid confirmation code'},
+        status=status.HTTP_400_BAD_REQUEST
+    )

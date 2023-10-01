@@ -8,11 +8,16 @@ from users.models import User
 
 class Category(models.Model):
     """Модель категории."""
-    name = models.CharField(max_length=256,
-                            verbose_name='Название категории')
-    slug = models.SlugField(max_length=50,
-                            unique=True,
-                            verbose_name='Категория')
+
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название категории',
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        verbose_name='Категория',
+    )
 
     class Meta:
         verbose_name = 'Категория'
@@ -24,12 +29,17 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель жанра."""
-    name = models.CharField(max_length=256,
-                            verbose_name='Название жанра',
-                            db_index=True)
-    slug = models.SlugField(max_length=50,
-                            unique=True,
-                            verbose_name='Слаг')
+
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название жанра',
+        db_index=True,
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        verbose_name='Слаг',
+    )
 
     class Meta:
         verbose_name = 'Жанр'
@@ -41,8 +51,11 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель произведения."""
-    name = models.CharField(max_length=256,
-                            verbose_name='Название произведенеия')
+
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название произведенеия',
+    )
     year = models.IntegerField(
         validators=(
             MaxValueValidator(
@@ -50,7 +63,7 @@ class Title(models.Model):
                 message='Нельзя указать год в будущем'
             ),
         ),
-        verbose_name='Год выпуска произведения'
+        verbose_name='Год выпуска произведения',
     )
     description = models.TextField(
         verbose_name='Описание произведения',
@@ -60,8 +73,6 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Жанр',
-        # through='GenreTitle',
-        # through_fields=('title', 'genre'),
     )
     category = models.ForeignKey(
         Category,
@@ -82,16 +93,21 @@ class Title(models.Model):
 
 class TitleGenre(models.Model):
     """Модель связи произведения и жанра."""
-    title = models.ForeignKey(
-        Title,
-        verbose_name='Произведение',
-        on_delete=models.CASCADE
-    )
+
     genre = models.ForeignKey(
         Genre,
         verbose_name='Жанр',
         on_delete=models.CASCADE,
     )
+    title = models.ForeignKey(
+        Title,
+        verbose_name='Произведение',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Связь произведение-жанр'
+        verbose_name_plural = 'Связь произведения-жанры'
 
     def __str__(self):
         return f'{self.title} {self.genre}'

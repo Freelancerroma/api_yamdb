@@ -8,7 +8,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        fields = '__all__'
         lookup_field = 'slug'
 
 
@@ -17,7 +17,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        fields = '__all__'
         lookup_field = 'slug'
 
 
@@ -27,14 +27,14 @@ class TitleViewSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
-        queryset=Genre.objects.all()
+        queryset=Genre.objects.all(),
     )
     category = serializers.SlugRelatedField(
         slug_field='slug',
-        queryset=Category.objects.all()
+        queryset=Category.objects.all(),
     )
     rating = serializers.IntegerField(
-        read_only=True
+        read_only=True,
     )
 
     class Meta:
@@ -47,12 +47,12 @@ class TitleWriteSerializer(serializers.ModelField):
 
     category = serializers.SlugRelatedField(
         slug_field='slug',
-        queryset=Category.objects.all()
+        queryset=Category.objects.all(),
     )
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
-        queryset=Genre.objects.all()
+        queryset=Genre.objects.all(),
     )
 
     class Meta:
@@ -76,7 +76,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             validators.UniqueTogetherValidator(
                 queryset=Review.objects.all(),
                 fields=('title', 'author'),
-                message='Вы уже оставляли комментарий'
+                message='Вы уже оставляли комментарий',
             ),
         )
         read_only_fields = ('title',)
