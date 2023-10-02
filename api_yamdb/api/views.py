@@ -1,16 +1,26 @@
 from django.db.models import Avg
+from django_filters.rest_framework.backends import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 
-from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
-                                           FilterSet, NumberFilter)
+from django_filters.rest_framework import (
+    CharFilter,
+    DjangoFilterBackend,
+    FilterSet,
+    NumberFilter
+)
 from reviews.models import Category, Genre, Review, Title
 from users.permissions import IsAdminModeratorAuthorReadOnly, IsAdminOrReadOnly
 
 from .mixins import GetListCreateDeleteMixin
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          TitleReadSerializer, TitleWriteSerializer)
+from .serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer
+)
 
 
 class TitleFilter(FilterSet):
