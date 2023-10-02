@@ -1,5 +1,4 @@
-from audioop import avg
-from rest_framework import serializers, validators
+from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -8,11 +7,8 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий."""
 
     class Meta:
-        fields = (
-            'name',
-            'slug',
-        )
         model = Category
+        fields = ('name', 'slug',)
         lookup_field = 'slug'
 
 
@@ -21,21 +17,19 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        fields = ('name', 'slug',)
         lookup_field = 'slug'
 
 
-class TitleViewSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для отображения."""
 
-    genre = serializers.SlugRelatedField(
+    genre = GenreSerializer(
         many=True,
-        slug_field='slug',
-        queryset=Genre.objects.all(),
+        read_only=True,
     )
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all(),
+    category = CategorySerializer(
+        read_only=True,
     )
     rating = serializers.IntegerField(
         read_only=True,
@@ -62,17 +56,18 @@ class TitleViewSerializer(serializers.ModelSerializer):
         return rating.get('avg')
 
 
-class TitleWriteSerializer(TitleViewSerializer):
-    """Сериализатор произседений для создания."""
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор произведений для создания."""
+
 
     category = serializers.SlugRelatedField(
-        slug_field='slug',
         queryset=Category.objects.all(),
+        slug_field='slug',
     )
     genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
         many=True,
         slug_field='slug',
-        queryset=Genre.objects.all(),
     )
 
     class Meta:
@@ -89,21 +84,28 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    def validate(self, data):
+        author = self.context.get('request').user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        if (
+            self.context.get('request').method == 'POST'
+            and Review.objects.filter(
+                author=author,
+                title__id=title_id
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                'Можно написать только один обзор к произведению'
+            )
+        return data
+
     class Meta:
         model = Review
-        fields = '__all__'
-        validators = (
-            validators.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('title', 'author'),
-                message='Вы уже оставляли комментарий',
-            ),
-        )
-        read_only_fields = ('title',)
+        fields = ('id', 'text', 'author', 'score', 'pub_date',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Комменарии serializer."""
+    """Комментарии serializer."""
 
     author = serializers.SlugRelatedField(
         slug_field='username',
@@ -113,5 +115,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = '__all__'
-        read_only_fields = ('review',)
+        fields = ('id', 'text', 'author', 'pub_date',)
