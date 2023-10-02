@@ -37,28 +37,11 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'description',
-            'year',
-            'categoty',
-            'genre',
-            'rating',
-        )
-
-    def get_rating(self, obj):
-        rating = Title.objects.filter(
-            id=obj.id
-        ).aggregate(
-            avg=avg('reviews__score')
-        )
-        return rating.get('avg')
+        fields = '__all__'
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для создания."""
-
 
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
