@@ -1,8 +1,8 @@
 from django.db.models import Avg
+from django_filters.rest_framework.backends import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Category, Genre, Review, Title
 from users.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthorReadOnly
@@ -16,6 +16,7 @@ from .serializers import (
     TitleViewSerializer,
     TitleWriteSerializer
 )
+from .filter import TitleFilter
 
 
 class CategoryViewSet(GetListCreateDeleteMixin):
@@ -23,9 +24,8 @@ class CategoryViewSet(GetListCreateDeleteMixin):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     search_fields = ('name', )
     lookup_field = 'slug'
 
@@ -35,9 +35,8 @@ class GenreViewSet(GetListCreateDeleteMixin):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     lookup_field = 'slug'
     search_fields = ('name',)
 
@@ -45,12 +44,18 @@ class GenreViewSet(GetListCreateDeleteMixin):
 class TitleViewSet(viewsets.ModelViewSet):
     """Получение списка всех произведений."""
 
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')
-    )
+    queryset = Title.objects.all()
     serializer_class = TitleViewSerializer
-    pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+
+    http_method_names = (
+        'get',
+        'post',
+        'patch',
+        'delete',
+    )
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -63,7 +68,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    pagination_class = LimitOffsetPagination
     permission_classes = (IsAdminModeratorAuthorReadOnly,)
 
     def get_title(self):
