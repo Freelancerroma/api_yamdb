@@ -6,18 +6,23 @@ from django.db import models
 from users.models import User
 
 
-class Category(models.Model):
-    """Модель категории."""
+class GenreCategory(models.Model):
+    """Общая модель жанра и категории."""
 
     name = models.CharField(
         max_length=256,
-        verbose_name='Название категории',
     )
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        verbose_name='Категория',
     )
+
+    class Meta:
+        abstract = True
+
+
+class Category(GenreCategory):
+    """Модель категории."""
 
     class Meta:
         verbose_name = 'Категория'
@@ -27,19 +32,8 @@ class Category(models.Model):
         return self.name
 
 
-class Genre(models.Model):
+class Genre(GenreCategory):
     """Модель жанра."""
-
-    name = models.CharField(
-        max_length=256,
-        verbose_name='Название жанра',
-        db_index=True,
-    )
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name='Слаг',
-    )
 
     class Meta:
         verbose_name = 'Жанр'

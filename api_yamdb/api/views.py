@@ -1,18 +1,11 @@
 from django.db.models import Avg
-from django_filters.rest_framework.backends import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, viewsets
+from django_filters.rest_framework.backends import DjangoFilterBackend
+from rest_framework import permissions
 
-from django_filters.rest_framework import (
-    CharFilter,
-    DjangoFilterBackend,
-    FilterSet,
-    NumberFilter
-)
 from reviews.models import Category, Genre, Review, Title
 from users.permissions import IsAdminModeratorAuthorReadOnly, IsAdminOrReadOnly
-
-from .mixins import GetListCreateDeleteMixin
+from .mixins import GetListCreateDeleteViewSet, GetPatchPostDeleteViewSet
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -21,18 +14,10 @@ from .serializers import (
     TitleReadSerializer,
     TitleWriteSerializer
 )
+from .filters import TitleFilter
 
 
-class TitleFilter(FilterSet):
-    """Фильтр для Title."""
-
-    genre = CharFilter(field_name='genre__slug')
-    category = CharFilter(field_name='category__slug')
-    name = CharFilter(field_name='name')
-    year = NumberFilter(field_name='year')
-
-
-class CategoryViewSet(GetListCreateDeleteMixin):
+class CategoryViewSet(GetListCreateDeleteViewSet):
     """Получение списка всех категорий."""
 
     queryset = Category.objects.all()
@@ -40,7 +25,7 @@ class CategoryViewSet(GetListCreateDeleteMixin):
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(GetListCreateDeleteMixin):
+class GenreViewSet(GetListCreateDeleteViewSet):
     """Получение списка всех жанров."""
 
     queryset = Genre.objects.all()
@@ -48,7 +33,7 @@ class GenreViewSet(GetListCreateDeleteMixin):
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(GetPatchPostDeleteViewSet):
     """Получение списка всех произведений."""
 
     queryset = Title.objects.annotate(
@@ -57,7 +42,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    http_method_names = ('get', 'patch', 'post', 'delete')
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -65,12 +49,11 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(GetPatchPostDeleteViewSet):
     """Обзоры viewset."""
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminModeratorAuthorReadOnly,)
-    http_method_names = ('get', 'patch', 'post', 'delete')
 
     def get_title(self):
         return get_object_or_404(
@@ -85,12 +68,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=self.get_title())
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(GetPatchPostDeleteViewSet):
     """Комментарии viewset."""
 
     serializer_class = CommentSerializer
     permission_classes = (IsAdminModeratorAuthorReadOnly,)
-    http_method_names = ('get', 'patch', 'post', 'delete')
 
     def get_review(self):
         return get_object_or_404(
