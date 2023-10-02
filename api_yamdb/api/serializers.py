@@ -1,4 +1,4 @@
-from rest_framework import serializers, validators
+from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -67,16 +67,24 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    def validate(self, data):
+        author = self.context.get('request').user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        if (
+            self.context.get('request').method == 'POST'
+            and Review.objects.filter(
+                author=author,
+                title__id=title_id
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                'Можно написать только один обзор к произведению'
+            )
+        return data
+
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date',)
-        validators = (
-            validators.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('title', 'author'),
-                message='Вы уже оставляли комментарий',
-            ),
-        )
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -91,4 +99,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'text', 'author', 'pub_date',)
-        read_only_fields = ('review', )

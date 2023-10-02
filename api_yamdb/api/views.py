@@ -1,26 +1,25 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
-from rest_framework.pagination import LimitOffsetPagination
-from django_filters.rest_framework import FilterSet, CharFilter, DjangoFilterBackend
+
+from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
+                                           FilterSet, NumberFilter)
 from reviews.models import Category, Genre, Review, Title
-from users.permissions import IsAdminOrReadOnly, IsAdminModeratorAuthorReadOnly
+from users.permissions import IsAdminModeratorAuthorReadOnly, IsAdminOrReadOnly
 
 from .mixins import GetListCreateDeleteMixin
-from .serializers import (
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer
-)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleReadSerializer, TitleWriteSerializer)
 
 
 class TitleFilter(FilterSet):
     """Фильтр для Title."""
+
     genre = CharFilter(field_name='genre__slug')
     category = CharFilter(field_name='category__slug')
+    name = CharFilter(field_name='name')
+    year = NumberFilter(field_name='year')
 
 
 class CategoryViewSet(GetListCreateDeleteMixin):
@@ -48,6 +47,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    http_method_names = ('get', 'patch', 'post', 'delete')
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -60,6 +60,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminModeratorAuthorReadOnly,)
+    http_method_names = ('get', 'patch', 'post', 'delete')
 
     def get_title(self):
         return get_object_or_404(
@@ -79,6 +80,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = (IsAdminModeratorAuthorReadOnly,)
+    http_method_names = ('get', 'patch', 'post', 'delete')
 
     def get_review(self):
         return get_object_or_404(

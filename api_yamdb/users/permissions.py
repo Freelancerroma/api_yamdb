@@ -1,4 +1,3 @@
-"""Permissions for users."""
 from rest_framework import permissions
 
 
