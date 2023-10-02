@@ -1,12 +1,15 @@
 from rest_framework import mixins, viewsets
+from rest_framework.filters import SearchFilter
 
 
 class GetListCreateDeleteMixin(
-    viewsets.GenericViewSet,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
 ):
     """Миксин для методов Get, List, Create, Delete."""
 
-    pass
+    filter_backends = (SearchFilter,)
+    search_fields = ('name', )
+    lookup_field = 'slug'
