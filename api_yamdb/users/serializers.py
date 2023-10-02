@@ -28,11 +28,17 @@ class RegistrationSerializer(ValidateUsername, serializers.Serializer):
         required=True,
         max_length=150,
     )
-    email = serializers.EmailField(required=True, max_length=254)
+    email = serializers.EmailField(
+        required=True,
+        max_length=254,
+    )
 
 
 class TokenSerializer(ValidateUsername, serializers.Serializer):
     username = serializers.CharField(
-        required=True, max_length=150,
+        required=True,
+        max_length=150,
     )
-    confirmation_code = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(
+        required=True,
+    )

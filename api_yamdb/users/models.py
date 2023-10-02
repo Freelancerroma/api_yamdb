@@ -18,7 +18,9 @@ CHOICES_ROLE = (
 class User(ValidateUsername, AbstractUser):
     """Own user class for yamdb project."""
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(
+        unique=True,
+    )
     bio = models.TextField(
         verbose_name='biography',
         blank=True,
