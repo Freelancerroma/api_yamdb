@@ -7,7 +7,7 @@ class ValidateUsername:
     """Username validators."""
 
     def validate_username(self, username):
-        pattern = re.compile(r'[\w.@+-]+')
+        pattern = re.compile(r'^[\w.@+-]+\Z')
         symbols_forbidden = re.sub(pattern, '', username)
         if symbols_forbidden:
             symbols = ", ".join(symbols_forbidden)
