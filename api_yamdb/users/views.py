@@ -1,9 +1,9 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -53,16 +53,25 @@ def signup_user(request):
     serializer.is_valid(raise_exception=True)
     email = serializer.validated_data.get('email')
     username = serializer.validated_data.get('username')
-    user_username = User.objects.filter(username=username).first()
-    user_email = User.objects.filter(email=email).first()
-    if user_username == user_email:
+
+    try:
         user, _ = User.objects.get_or_create(
             username=username, email=email)
-    else:
-        raise ValidationError(
-            'Email already exists',
-            status.HTTP_400_BAD_REQUEST,
-        )
+    except IntegrityError:
+        if (
+            User.objects.filter(username=username).exists()
+            and User.objects.filter(email=email).exists()
+        ):
+            error = {
+                'username': ['Это имя уже занято.'],
+                'email': ['Этот email уже занят.']
+            }
+        elif User.objects.filter(username=username).exists():
+            error = {'username': ['Это имя уже занято.']}
+        else:
+            User.objects.filter(email=email).exists()
+            error = {'email': ['Этот email уже занят.']}
+        return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
     confirmation_code = default_token_generator.make_token(user)
     send_mail(

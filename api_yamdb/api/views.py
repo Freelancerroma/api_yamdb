@@ -5,7 +5,7 @@ from rest_framework import permissions
 
 from reviews.models import Category, Genre, Review, Title
 from users.permissions import IsAdminModeratorAuthorReadOnly, IsAdminOrReadOnly
-from .mixins import GetListCreateDeleteViewSet, GetPatchPostDeleteViewSet
+from .mixins import GetListCreateDeleteViewSet, GetPatchCreateDeleteViewSet
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -33,11 +33,11 @@ class GenreViewSet(GetListCreateDeleteViewSet):
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class TitleViewSet(GetPatchPostDeleteViewSet):
+class TitleViewSet(GetPatchCreateDeleteViewSet):
     """Получение списка всех произведений."""
 
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')
+    queryset = Title.objects.all().annotate(
+        Avg('reviews__score')
     )
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -49,7 +49,7 @@ class TitleViewSet(GetPatchPostDeleteViewSet):
         return TitleWriteSerializer
 
 
-class ReviewViewSet(GetPatchPostDeleteViewSet):
+class ReviewViewSet(GetPatchCreateDeleteViewSet):
     """Обзоры viewset."""
 
     serializer_class = ReviewSerializer
@@ -68,7 +68,7 @@ class ReviewViewSet(GetPatchPostDeleteViewSet):
         serializer.save(author=self.request.user, title=self.get_title())
 
 
-class CommentViewSet(GetPatchPostDeleteViewSet):
+class CommentViewSet(GetPatchCreateDeleteViewSet):
     """Комментарии viewset."""
 
     serializer_class = CommentSerializer

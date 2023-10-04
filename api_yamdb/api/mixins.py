@@ -1,5 +1,6 @@
 from rest_framework import mixins, viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.exceptions import MethodNotAllowed
 
 
 class GetListCreateDeleteViewSet(
@@ -15,7 +16,18 @@ class GetListCreateDeleteViewSet(
     lookup_field = 'slug'
 
 
-class GetPatchPostDeleteViewSet(viewsets.ModelViewSet):
+class GetPatchCreateDeleteViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
     """ViewSet для запросов GET, PATCH, POST, DELETE."""
 
-    http_method_names = ('get', 'patch', 'post', 'delete')
+    def update(self, *args, **kwargs):
+        raise MethodNotAllowed('POST', detail='Use PATCH')
+
+    def partial_update(self, *args, **kwargs):
+        return super().update(*args, **kwargs, partial=True)

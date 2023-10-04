@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -21,33 +22,55 @@ class GenreSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
+class DictSlugRelatedField(SlugRelatedField):
+    """Способ отображения для Жанра и Категории в Произведении."""
+
+    def to_representation(self, obj):
+        result = {
+            'name': obj.name,
+            'slug': obj.slug
+        }
+        return result
+
+
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для отображения."""
 
-    genre = GenreSerializer(
-        many=True,
-        read_only=True,
+    category = DictSlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug',
     )
-    category = CategorySerializer(
-        read_only=True,
+    genre = DictSlugRelatedField(
+        queryset=Genre.objects.all(),
+        many=True,
+        slug_field='slug',
     )
     rating = serializers.IntegerField(
+        source='reviews__score__avg',
         read_only=True,
     )
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category'
+        )
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для создания."""
 
-    category = serializers.SlugRelatedField(
+    category = DictSlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug',
     )
-    genre = serializers.SlugRelatedField(
+    genre = DictSlugRelatedField(
         queryset=Genre.objects.all(),
         many=True,
         slug_field='slug',
@@ -55,7 +78,16 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category'
+        )
+        read_only_fields = ('rating',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
