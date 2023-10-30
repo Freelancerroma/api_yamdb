@@ -140,13 +140,13 @@ class Review(models.Model):
         auto_now_add=True,
     )
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=('author', 'title'),
-                name='Можно оставить только один отзыв на произведение',
-            ),
-        ]
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(
+    #             fields=('author', 'title'),
+    #             name='Можно оставить только один отзыв на произведение',
+    #         ),
+    #     ]
 
     def __str__(self):
         return f'{self.author} - {self.text[:10]}'
